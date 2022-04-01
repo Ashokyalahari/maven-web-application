@@ -27,6 +27,10 @@ def sendNotifications(String buildStatus = 'STARTED') {
 
 node {
 
+ try{
+ 
+ sendSlackNotifications("STARTED")
+
 def mavenHome = tool name: "maven_3.8.5"
 
 echo "The Node name is:  ${env.NODE_NAME} "
@@ -66,4 +70,15 @@ sshagent(['4f449e8a-2b73-47eb-8ef2-509772050412']) {
     sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.234.115.81:/opt/tomcat9/webapps"
 }
 }
+}
+*/
+ catch(e) {
+ // If there was an exception thrown, the build failed
+     currentBuild.result = "FAILED"
+     throw e
+ }finally {
+    // Success or failure, always send notifications
+    sendSlackNotifications(currentBuild.result)
+  }
+
 }

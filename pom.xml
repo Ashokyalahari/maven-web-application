@@ -99,13 +99,13 @@
 	    <repository>
 	      <id>nexus</id>
 	      <name>Mithun Technologies Releases Nexus Repository</name>
-	      <url>http://3.111.41.45:9980/ashok/repository/whatsapp-release/</url>
+	      <url>http://65.0.87.48:9980/ashok/repository/whatsapp-release/</url>
 	    </repository>
 	    
 	    <snapshotRepository>
 	      <id>nexus</id>
 	      <name>Mithun Technologies Snapshot Nexus Repository </name>
-	      <url>http://3.111.41.45:9980/ashok/repository/whatsapp-snapshot/</url>
+	      <url>http://65.0.87.48:9980/ashok/repository/whatsapp-snapshot/</url>
 	    </snapshotRepository>
 	    
 	</distributionManagement>

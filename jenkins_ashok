@@ -1,42 +1,10 @@
-def sendNotifications(String buildStatus = 'STARTED') {
-  
-  // build status of null means successful
-    buildStatus =  buildStatus ?: 'SUCCESS'
-   // Default values
-  def colorName = 'RED'
-  def colorCode = '#FF0000'
-  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
-  def summary = "${subject} \n Job Name: '${env.JOB_NAME} \n Build Number: [${currentBuild.displayName}]' \n Build URL: (${env.BUILD_URL}) \n }"
-  
-
-  // Override default values based on build status
-  if (buildStatus == 'STARTED') {
-    color = 'YELLOW'
-    colorCode = '#FFFF00'
-  } else if (buildStatus == 'SUCCESS') {
-    color = 'GREEN'
-    colorCode = '#00FF00'
-  } else {
-    color = 'RED'
-    colorCode = '#FF0000'
-  }
-
-  // Send notifications
-  slackSend (color: colorCode, message: summary)
-}
-
 node {
+
+def mavenHome = tool name: "maven_3.8.5"
 
  try{
  
  sendSlackNotifications("STARTED")
-
-def mavenHome = tool name: "maven_3.8.5"
-
-echo "The Node name is:  ${env.NODE_NAME} "
-echo "The Job name is:  ${env.JOB_NAME} "
-echo " The Build number is: ${env.BUILD_NUMBER}  "
-buildName 'Dev  - ${BUILD_NUMBER}'
 
 properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'JobLocalConfiguration', changeReasonComment: '']])
 
@@ -54,22 +22,6 @@ stage ('Build') {
 sh "$mavenHome/bin/mvn clean package"
 }
 
-//Generate SonarQube Report 
-stage('SonarQubeReport'){
-sh "$mavenHome/bin/mvn sonar:sonar"
-}
-
-//Upload Artifact into Artifcatory repo
-stage('UploadArtifcatsIntoNexus'){
-sh "$mavenHome/bin/mvn deploy"
-}
-
-//Deploy App into Tomcat Server
-stage('DeployAppIntoTomcat'){
-sshagent(['4f449e8a-2b73-47eb-8ef2-509772050412']) {
-    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.234.115.81:/opt/tomcat9/webapps"
-}
-}
 }
  catch(e) {
  // If there was an exception thrown, the build failed
@@ -79,5 +31,33 @@ sshagent(['4f449e8a-2b73-47eb-8ef2-509772050412']) {
     // Success or failure, always send notifications
     sendSlackNotifications(currentBuild.result)
   }
+ 
+}
 
+
+
+def sendSlackNotifications(String buildStatus = 'STARTED') {
+  // build status of null means successful
+  buildStatus =  buildStatus ?: 'SUCCESSFUL'
+
+  // Default values
+  def colorName = 'RED'
+  def colorCode = '#FF0000'
+  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+def summary = "${subject} (${env.BUILD_URL})"
+
+  // Override default values based on build status
+  if (buildStatus == 'STARTED') {
+    color = 'YELLOW'
+    colorCode = '#FFFF00'
+  } else if (buildStatus == 'SUCCESSFUL') {
+    color = 'GREEN'
+    colorCode = '#00FF00'
+  } else {
+    color = 'RED'
+    colorCode = '#FF0000'
+  }
+
+  // Send notifications
+  slackSend (color: colorCode, message: summary)
 }

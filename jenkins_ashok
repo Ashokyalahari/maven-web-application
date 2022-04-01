@@ -1,3 +1,4 @@
+
 node {
 
 def mavenHome = tool name: "maven_3.8.5"
@@ -22,6 +23,22 @@ stage ('Build') {
 sh "$mavenHome/bin/mvn clean package"
 }
 
+//Generate SonarQube Report 
+stage('SonarQubeReport'){
+sh "$mavenHome/bin/mvn sonar:sonar"
+}
+
+//Upload Artifact into Artifcatory repo
+stage('UploadArtifcatsIntoNexus'){
+sh "$mavenHome/bin/mvn deploy"
+}
+
+//Deploy App into Tomcat Server
+stage('DeployAppIntoTomcat'){
+sshagent(['4f449e8a-2b73-47eb-8ef2-509772050412']) {
+    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.234.115.81:/opt/tomcat9/webapps"
+}
+}
 }
  catch(e) {
  // If there was an exception thrown, the build failed
